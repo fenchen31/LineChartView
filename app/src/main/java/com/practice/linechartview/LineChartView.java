@@ -23,9 +23,13 @@ import java.util.ArrayList;
  * @author 黎亮亮
  * @Date 2021/9/9
  * @describe 折线图
- * 大致思路：1.通过传入的数据，将可用宽度按照数组长度等分，高度需先除去不可用高度，也就是文字占据部分，
- * 然后在按照数组中y的最大值和最小值的差作为百分比进行等分
- * 2.
+ * 大致思路：
+ * 1.初始化画笔和路径等，设置模拟数据等
+ * 2.获取activity中设置的数据信息
+ * 3.在onMeasure()中设置宽高百分比等信息(根据数据将宽度等分，可用高度由外部传入（以百分比形式占据原控件的高），用数据的最大y和最小y的差值作为百分比等比例划分)
+ * 4.算出每个点的坐标，绘制点，线和阴影并连线
+ * 注意:1.当文字宽度超过10*2个像素时，第一个点的内容会从paddingLeft开始，最后一个点会到paddingRight结束
+ * 2.点需在阴影上方，要么将点作为前景绘制，要么画点在画阴影之后
  */
 public class LineChartView extends View {
 
@@ -169,13 +173,6 @@ public class LineChartView extends View {
                     linePath.moveTo(left + getPaddingLeft() + (i * widthCut), getPaddingTop() + top + (data.get(i).getyCut() - minHeight) * heightCut);
                     shaderPath.moveTo(left + getPaddingLeft() + (i * widthCut), getPaddingTop() + top + (data.get(i).getyCut() - minHeight) * heightCut);
                 } else {
-                    /**
-                     * 注意：当折线图中点的横坐标超过了控件的内容显示坐标最大值的右边界则该点直接不绘制。
-                     * 最好的办法应该是利用勾股定理算出和边界相交的点的坐标，然后用该点去进行阴影的绘制，
-                     * 但这里不做处理
-                     */
-                    if (left + getPaddingLeft() + (i * widthCut) > weightWidth - right - getPaddingRight())
-                        return;
                     linePath.lineTo(left + getPaddingLeft() + (i * widthCut), getPaddingTop() + top + (data.get(i).getyCut() - minHeight) * heightCut);
                     shaderPath.lineTo(left + getPaddingLeft() + (i * widthCut), getPaddingTop() + top + (data.get(i).getyCut() - minHeight) * heightCut);
                     if (i == data.size() - 1) {
@@ -210,18 +207,32 @@ public class LineChartView extends View {
         textPaint.getTextBounds(text, 0, text.length(), textRect);
         int textHeight = textRect.height();
         int textWidth = textRect.width();
-        if (textWidth > widthCut && index == 0) {
-            /**
-             * 因为中文文字高度都相同，故默认取一行文字高度时，直接选择任意文字即可
-             * 日期在上，价格在下
-             * 文字是以基线（中文当中的基线可以大致理解为文字底部，详细的介绍还是自己百度一下比较好，毕竟勤能补拙）
-             * 开始绘制，即drawText(String text, float x, float y, Paint paint)中的y，
-             * 这里的y采用文字高度的1/2为基线进行绘制
-             */
-            if (price) {
-                canvas.drawText(text, getPaddingLeft(), availableHeight + textRow * 2 + textHeight + top + getPaddingTop(), textPaint);
+        /**
+         * 因为中文文字高度都相同，故默认取一行文字高度时，直接选择任意文字即可
+         * 日期在上，价格在下
+         * 文字是以基线（中文当中的基线可以大致理解为文字底部，详细的介绍还是自己百度一下比较好，毕竟勤能补拙）
+         * 开始绘制，即drawText(String text, float x, float y, Paint paint)中的y，
+         * 这里的y采用文字高度的1/2为基线进行绘制
+         */
+        if (textWidth > left * 2) {
+            if (index == 0) {
+                if (price) {
+                    canvas.drawText(text, getPaddingLeft(), availableHeight + textRow * 2 + textHeight + top + getPaddingTop(), textPaint);
+                } else {
+                    canvas.drawText(text, getPaddingLeft(), availableHeight + textRow + textHeight / 2 + top + getPaddingTop(), textPaint);
+                }
+            } else if (index == data.size() - 1) {
+                if (price) {
+                    canvas.drawText(text, weightWidth - getPaddingRight() - textWidth, availableHeight + textRow * 2 + textHeight + top + getPaddingTop(), textPaint);
+                } else {
+                    canvas.drawText(text, weightWidth - getPaddingRight() - textWidth, availableHeight + textRow + textHeight / 2 + top + getPaddingTop(), textPaint);
+                }
             } else {
-                canvas.drawText(text, getPaddingLeft(), availableHeight + textRow + textHeight / 2 + top + getPaddingTop(), textPaint);
+                if (price) {
+                    canvas.drawText(text, x - textWidth / 2, availableHeight + textRow * 2 + textHeight + top + getPaddingTop(), textPaint);
+                } else {
+                    canvas.drawText(text, x - textWidth / 2, availableHeight + textRow + textHeight / 2 + top + getPaddingTop(), textPaint);
+                }
             }
         } else {
             if (price) {
@@ -242,7 +253,6 @@ public class LineChartView extends View {
             bean.setPrice("2" + i + ".1" + i);
             data.add(bean);
         }
-        getHeightAndWidth(90);
     }
 
     /**
