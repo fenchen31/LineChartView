@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="LineChartView">
+        <attr name="android:textSize" format="float"/>
+        <attr name="android:textColor" format="color"/>
+        <attr name="pointColor" format="color"/>
+        <attr name="lineColor" format="color"/>
+    </declare-styleable>
+    
+</resources>
