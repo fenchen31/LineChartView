@@ -68,7 +68,6 @@ public class LineChartView extends View {
         linePaint.setColor(Color.GREEN);
         linePaint.setStrokeWidth(lineWidth);
         linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setPathEffect(new DashPathEffect(new float[]{4, 4}, 0));//画虚线
 
         circlePointPaint = new Paint();
         circlePointPaint.setAntiAlias(true);
@@ -280,6 +279,14 @@ public class LineChartView extends View {
             this.data = data;
             this.heightPercent = heightPercent;
             invalidate();//更新UI
+        }
+    }
+
+    public void setDottedLine(boolean dottedLine){//是否为虚线
+        if (dottedLine){
+            linePaint.setPathEffect(new DashPathEffect(new float[]{4, 4}, 0));
+        } else {
+            linePaint.setPathEffect(null);
         }
     }
 

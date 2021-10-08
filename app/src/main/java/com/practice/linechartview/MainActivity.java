@@ -9,6 +9,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     private LineChartView lineChart;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -17,22 +18,23 @@ public class MainActivity extends AppCompatActivity {
         setData();
     }
 
-    private void setData(){
+    private void setData() {
         ArrayList<DataBean> data = new ArrayList<>();
-        for (int i = 0; i < 5; i ++){
+        for (int i = 0; i < 5; i++) {
             DataBean bean = new DataBean();
             bean.setDate("202" + i + ".0" + i + ".0" + i);
             bean.setPrice("1" + i + ".1" + i);
             bean.setxCut(i);
-            if (i == 3){
+            if (i == 3) {
                 bean.setyCut(2);
-            } else if (i == 4){
+            } else if (i == 4) {
                 bean.setyCut(3);
             } else {
                 bean.setyCut(i);
             }
             data.add(bean);
         }
+        lineChart.setDottedLine(false);
         lineChart.setData(data, 66);
     }
 }
